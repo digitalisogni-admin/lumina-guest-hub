@@ -5,7 +5,8 @@ import { useAISession } from "@/context/AISessionContext";
 import { ChatBubble } from "@/components/concierge/ChatBubble";
 import { ContextPill } from "@/components/concierge/ContextPill";
 import { VoiceButton } from "@/components/concierge/VoiceButton";
-import { renderUIComponent } from "@/lib/uiParser";
+import { SuggestedReplies } from "@/components/concierge/SuggestedReplies";
+import { renderUIComponents } from "@/lib/uiParser";
 
 export const Route = createFileRoute("/concierge")({
   head: () => ({
@@ -22,7 +23,7 @@ export const Route = createFileRoute("/concierge")({
 });
 
 function ConciergePage() {
-  const { messages, isThinking, send } = useAISession();
+  const { messages, isThinking, send, runAction, runSuggestedReply } = useAISession();
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -41,7 +42,6 @@ function ConciergePage() {
 
   return (
     <div className="max-w-[1500px] mx-auto h-[calc(100vh-220px)] flex flex-col">
-      {/* Context pill */}
       <div className="mb-6">
         <ContextPill />
       </div>
@@ -58,8 +58,13 @@ function ConciergePage() {
             key={m.id}
             role={m.role}
             extra={
-              m.role === "lumina" && m.ui ? (
-                <div className="mt-1">{renderUIComponent(m.ui, { onQuickReply: submit })}</div>
+              m.role === "lumina" && m.ui && m.ui.length > 0 ? (
+                <div className="mt-1">
+                  {renderUIComponents(m.ui, {
+                    onQuickReply: submit,
+                    onAction: runAction,
+                  })}
+                </div>
               ) : null
             }
           >
@@ -68,7 +73,7 @@ function ConciergePage() {
         ))}
         {isThinking && (
           <ChatBubble role="lumina">
-            <span className="inline-flex gap-1.5">
+            <span className="inline-flex gap-1.5 items-center">
               <span className="size-2 rounded-full bg-ai animate-pulse" />
               <span className="size-2 rounded-full bg-ai animate-pulse [animation-delay:120ms]" />
               <span className="size-2 rounded-full bg-ai animate-pulse [animation-delay:240ms]" />
@@ -77,19 +82,10 @@ function ConciergePage() {
         )}
       </div>
 
-      {/* Suggested replies for last message */}
+      {/* Suggested replies for last message — focusable remote chips */}
       {!isThinking && lastLumina?.suggestedReplies && lastLumina.suggestedReplies.length > 0 && (
-        <div className="mt-5 flex flex-wrap gap-3" aria-label="Suggested replies">
-          {lastLumina.suggestedReplies.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => submit(s)}
-              className="min-h-[56px] px-5 rounded-2xl bg-ai-soft text-ai text-lg font-semibold border-2 border-transparent hover:border-ai/40"
-            >
-              {s}
-            </button>
-          ))}
+        <div className="mt-5">
+          <SuggestedReplies replies={lastLumina.suggestedReplies} onSelect={runSuggestedReply} />
         </div>
       )}
 
@@ -101,7 +97,7 @@ function ConciergePage() {
         }}
         className="mt-6 flex items-center gap-4"
       >
-        <div className="flex-1 flex items-center gap-3 bg-surface border border-border rounded-3xl px-5 tv-shadow">
+        <div className="flex-1 flex items-center gap-3 bg-surface border border-border rounded-3xl px-5 tv-shadow focus-within:border-ai/50 transition-colors">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}

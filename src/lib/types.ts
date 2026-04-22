@@ -37,15 +37,6 @@ export interface Reservation {
   nights: number;
 }
 
-export interface ChatMessage {
-  id: string;
-  role: "guest" | "lumina";
-  text: string;
-  ui?: UIComponent | null;
-  suggestedReplies?: string[];
-  timestamp: number;
-}
-
 // JSON-driven UI cards returned by the AI
 export type UIComponent =
   | { type: "QuickReply"; props: { options: string[] } }
@@ -57,6 +48,7 @@ export type UIComponent =
         image?: string;
         price?: string;
         cta?: string;
+        action?: BackendAction;
       };
     }
   | {
@@ -75,17 +67,51 @@ export type UIComponent =
           subtitle?: string;
           image?: string;
           tag?: string;
+          action?: BackendAction;
         }>;
       };
     };
 
+/**
+ * A suggested reply can be a plain prompt the guest sends back to Lumina,
+ * OR a direct action that triggers a backend mutation (e.g. "Confirm order"
+ * → creates a service request) without round-tripping through the LLM.
+ */
+export interface SuggestedReply {
+  label: string;
+  // If provided, executing the chip dispatches this action immediately
+  // (in addition to optionally sending `label` back as a prompt).
+  action?: BackendAction;
+  // If true, the chip's label is also sent as the next user message.
+  echoAsMessage?: boolean;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: "guest" | "lumina";
+  text: string;
+  // Multiple UI cards may accompany a single AI reply.
+  ui?: UIComponent[];
+  suggestedReplies?: SuggestedReply[];
+  timestamp: number;
+}
+
 export type BackendAction =
-  | { kind: "create_request"; payload: Omit<ServiceRequest, "id" | "createdAt" | "status"> & { status?: ServiceStatus } }
+  | {
+      kind: "create_request";
+      payload: Omit<ServiceRequest, "id" | "createdAt" | "status"> & {
+        status?: ServiceStatus;
+      };
+    }
   | { kind: "book"; payload: { item: string } }
+  | { kind: "navigate"; payload: { to: "/services" | "/stay" | "/concierge" | "/" } }
   | { kind: "none" };
 
 export interface AIResponse {
-  response: { text: string; suggested_replies: string[] };
-  ui_component: UIComponent | null;
-  backend_action: BackendAction;
+  response: { text: string; suggested_replies: SuggestedReply[] };
+  // Multiple cards (e.g. a Carousel + a QuickReply rail) in one reply.
+  ui_components: UIComponent[];
+  // Top-level actions executed immediately when the reply lands
+  // (e.g. spa booking confirmation → create_request).
+  backend_actions: BackendAction[];
 }
