@@ -1,19 +1,19 @@
-import type { UIComponent } from "./types";
+import type { BackendAction, UIComponent } from "./types";
 import { QuickReply } from "@/components/ui-cards/QuickReply";
 import { RoomCard } from "@/components/ui-cards/RoomCard";
 import { StatusTracker } from "@/components/ui-cards/StatusTracker";
 import { Carousel } from "@/components/ui-cards/Carousel";
 
+interface Handlers {
+  onQuickReply?: (option: string) => void;
+  onAction?: (action: BackendAction) => void;
+}
+
 /**
- * Map an AI-returned ui_component { type, props } to the matching React
- * component. Unknown types are silently ignored — the chat still renders
- * the text response.
+ * Map a single AI-returned ui_component { type, props } to its React
+ * component. Unknown types render nothing.
  */
-export function renderUIComponent(
-  ui: UIComponent | null | undefined,
-  handlers?: { onQuickReply?: (option: string) => void; onAction?: () => void },
-) {
-  if (!ui) return null;
+export function renderUIComponent(ui: UIComponent, handlers?: Handlers) {
   switch (ui.type) {
     case "QuickReply":
       return <QuickReply options={ui.props.options} onSelect={handlers?.onQuickReply} />;
@@ -24,7 +24,7 @@ export function renderUIComponent(
           subtitle={ui.props.subtitle}
           price={ui.props.price}
           cta={ui.props.cta}
-          onAction={handlers?.onAction}
+          onAction={ui.props.action ? () => handlers?.onAction?.(ui.props.action!) : undefined}
         />
       );
     case "StatusTracker":
@@ -36,8 +36,31 @@ export function renderUIComponent(
         />
       );
     case "Carousel":
-      return <Carousel items={ui.props.items} />;
+      return (
+        <Carousel
+          items={ui.props.items}
+          onItemSelect={(i) => {
+            const action = ui.props.items[i]?.action;
+            if (action) handlers?.onAction?.(action);
+          }}
+        />
+      );
     default:
       return null;
   }
+}
+
+/** Render a list of cards stacked vertically with consistent spacing. */
+export function renderUIComponents(
+  list: UIComponent[] | undefined,
+  handlers?: Handlers,
+) {
+  if (!list || list.length === 0) return null;
+  return (
+    <div className="flex flex-col gap-4">
+      {list.map((ui, i) => (
+        <div key={i}>{renderUIComponent(ui, handlers)}</div>
+      ))}
+    </div>
+  );
 }
