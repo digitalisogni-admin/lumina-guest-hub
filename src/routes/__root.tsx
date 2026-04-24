@@ -1,4 +1,4 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
 import { GuestProvider } from "@/context/GuestContext";
@@ -32,45 +32,10 @@ function NotFoundComponent() {
 }
 
 export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lumina · AI Concierge" },
-      {
-        name: "description",
-        content:
-          "Lumina AI Concierge — a 10-foot Smart TV experience for premium hotel guests. Concierge chat, room service, spa, dining, and stay management.",
-      },
-      { name: "author", content: "Aurora Hotels" },
-      { property: "og:title", content: "Lumina · AI Concierge" },
-      {
-        property: "og:description",
-        content: "A 10-foot Smart TV concierge for premium hotel guests.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-    links: [{ rel: "stylesheet", href: appCss }],
-  }),
-  shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
 });
 
-function RootShell({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  );
-}
 
 import { PortfolioDemoProvider } from "@/context/PortfolioDemoContext";
 import { PortfolioSettings } from "@/components/portfolio/PortfolioSettings";
