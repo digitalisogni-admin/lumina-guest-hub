@@ -69,15 +69,13 @@ export default async function handler(request) {
 `
 );
 
-// ── 7. Write .vc-config.json (Node.js runtime config) ──────────────────
+// ── 7. Write .vc-config.json (Edge runtime config) ──────────────────
 writeFileSync(
   join(FUNC, ".vc-config.json"),
   JSON.stringify(
     {
-      runtime: "nodejs22.x",
-      handler: "index.mjs",
-      launcherType: "Nodejs",
-      supportsResponseStreaming: true,
+      runtime: "edge",
+      entrypoint: "index.mjs",
     },
     null,
     2
