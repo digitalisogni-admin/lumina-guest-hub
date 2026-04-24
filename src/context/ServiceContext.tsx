@@ -4,7 +4,9 @@ import type { ServiceRequest, ServiceStatus } from "@/lib/types";
 
 interface ServiceContextValue {
   requests: ServiceRequest[];
-  createRequest: (r: Omit<ServiceRequest, "id" | "createdAt" | "status"> & { status?: ServiceStatus }) => ServiceRequest;
+  createRequest: (
+    r: Omit<ServiceRequest, "id" | "createdAt" | "status"> & { status?: ServiceStatus },
+  ) => ServiceRequest;
   updateStatus: (id: string, status: ServiceStatus) => void;
 }
 
@@ -28,7 +30,10 @@ export function ServiceProvider({ children }: { children: ReactNode }) {
     setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
   }, []);
 
-  const value = useMemo(() => ({ requests, createRequest, updateStatus }), [requests, createRequest, updateStatus]);
+  const value = useMemo(
+    () => ({ requests, createRequest, updateStatus }),
+    [requests, createRequest, updateStatus],
+  );
 
   return <ServiceContext.Provider value={value}>{children}</ServiceContext.Provider>;
 }

@@ -32,7 +32,11 @@ export function SuggestedReplies({
                 : "bg-ai-soft text-ai border-transparent hover:border-ai/40",
             ].join(" ")}
           >
-            {isAction ? <Zap className="size-5" /> : <Sparkles className="size-5 opacity-70" />}
+            {isAction ? (
+              <Zap className="size-5" />
+            ) : (
+              <img src="/images/logo.png" alt="" className="size-5 object-contain opacity-70" />
+            )}
             {r.label}
           </button>
         );

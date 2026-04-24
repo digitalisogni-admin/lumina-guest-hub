@@ -6,10 +6,7 @@ export function Carousel({
   onItemSelect?: (index: number) => void;
 }) {
   return (
-    <div
-      className="flex gap-4 overflow-x-auto pb-3 -mx-2 px-2 snap-x snap-mandatory"
-      role="list"
-    >
+    <div className="flex gap-4 overflow-x-auto pb-3 -mx-2 px-2 snap-x snap-mandatory" role="list">
       {items.map((item, i) => (
         <button
           key={i}

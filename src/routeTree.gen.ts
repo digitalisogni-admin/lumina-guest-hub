@@ -11,7 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StayRouteImport } from './routes/stay'
 import { Route as ServicesRouteImport } from './routes/services'
+import { Route as RoomRouteImport } from './routes/room'
+import { Route as HelpRouteImport } from './routes/help'
+import { Route as GamesRouteImport } from './routes/games'
+import { Route as FidelityRouteImport } from './routes/fidelity'
+import { Route as EntertainmentRouteImport } from './routes/entertainment'
 import { Route as ConciergeRouteImport } from './routes/concierge'
+import { Route as BoutiqueRouteImport } from './routes/boutique'
+import { Route as ActivitiesRouteImport } from './routes/activities'
 import { Route as IndexRouteImport } from './routes/index'
 
 const StayRoute = StayRouteImport.update({
@@ -24,9 +31,44 @@ const ServicesRoute = ServicesRouteImport.update({
   path: '/services',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RoomRoute = RoomRouteImport.update({
+  id: '/room',
+  path: '/room',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GamesRoute = GamesRouteImport.update({
+  id: '/games',
+  path: '/games',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FidelityRoute = FidelityRouteImport.update({
+  id: '/fidelity',
+  path: '/fidelity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntertainmentRoute = EntertainmentRouteImport.update({
+  id: '/entertainment',
+  path: '/entertainment',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConciergeRoute = ConciergeRouteImport.update({
   id: '/concierge',
   path: '/concierge',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BoutiqueRoute = BoutiqueRouteImport.update({
+  id: '/boutique',
+  path: '/boutique',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivitiesRoute = ActivitiesRouteImport.update({
+  id: '/activities',
+  path: '/activities',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -37,34 +79,96 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/activities': typeof ActivitiesRoute
+  '/boutique': typeof BoutiqueRoute
   '/concierge': typeof ConciergeRoute
+  '/entertainment': typeof EntertainmentRoute
+  '/fidelity': typeof FidelityRoute
+  '/games': typeof GamesRoute
+  '/help': typeof HelpRoute
+  '/room': typeof RoomRoute
   '/services': typeof ServicesRoute
   '/stay': typeof StayRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/activities': typeof ActivitiesRoute
+  '/boutique': typeof BoutiqueRoute
   '/concierge': typeof ConciergeRoute
+  '/entertainment': typeof EntertainmentRoute
+  '/fidelity': typeof FidelityRoute
+  '/games': typeof GamesRoute
+  '/help': typeof HelpRoute
+  '/room': typeof RoomRoute
   '/services': typeof ServicesRoute
   '/stay': typeof StayRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/activities': typeof ActivitiesRoute
+  '/boutique': typeof BoutiqueRoute
   '/concierge': typeof ConciergeRoute
+  '/entertainment': typeof EntertainmentRoute
+  '/fidelity': typeof FidelityRoute
+  '/games': typeof GamesRoute
+  '/help': typeof HelpRoute
+  '/room': typeof RoomRoute
   '/services': typeof ServicesRoute
   '/stay': typeof StayRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/concierge' | '/services' | '/stay'
+  fullPaths:
+    | '/'
+    | '/activities'
+    | '/boutique'
+    | '/concierge'
+    | '/entertainment'
+    | '/fidelity'
+    | '/games'
+    | '/help'
+    | '/room'
+    | '/services'
+    | '/stay'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/concierge' | '/services' | '/stay'
-  id: '__root__' | '/' | '/concierge' | '/services' | '/stay'
+  to:
+    | '/'
+    | '/activities'
+    | '/boutique'
+    | '/concierge'
+    | '/entertainment'
+    | '/fidelity'
+    | '/games'
+    | '/help'
+    | '/room'
+    | '/services'
+    | '/stay'
+  id:
+    | '__root__'
+    | '/'
+    | '/activities'
+    | '/boutique'
+    | '/concierge'
+    | '/entertainment'
+    | '/fidelity'
+    | '/games'
+    | '/help'
+    | '/room'
+    | '/services'
+    | '/stay'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActivitiesRoute: typeof ActivitiesRoute
+  BoutiqueRoute: typeof BoutiqueRoute
   ConciergeRoute: typeof ConciergeRoute
+  EntertainmentRoute: typeof EntertainmentRoute
+  FidelityRoute: typeof FidelityRoute
+  GamesRoute: typeof GamesRoute
+  HelpRoute: typeof HelpRoute
+  RoomRoute: typeof RoomRoute
   ServicesRoute: typeof ServicesRoute
   StayRoute: typeof StayRoute
 }
@@ -85,11 +189,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServicesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/room': {
+      id: '/room'
+      path: '/room'
+      fullPath: '/room'
+      preLoaderRoute: typeof RoomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/games': {
+      id: '/games'
+      path: '/games'
+      fullPath: '/games'
+      preLoaderRoute: typeof GamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fidelity': {
+      id: '/fidelity'
+      path: '/fidelity'
+      fullPath: '/fidelity'
+      preLoaderRoute: typeof FidelityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entertainment': {
+      id: '/entertainment'
+      path: '/entertainment'
+      fullPath: '/entertainment'
+      preLoaderRoute: typeof EntertainmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/concierge': {
       id: '/concierge'
       path: '/concierge'
       fullPath: '/concierge'
       preLoaderRoute: typeof ConciergeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/boutique': {
+      id: '/boutique'
+      path: '/boutique'
+      fullPath: '/boutique'
+      preLoaderRoute: typeof BoutiqueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activities': {
+      id: '/activities'
+      path: '/activities'
+      fullPath: '/activities'
+      preLoaderRoute: typeof ActivitiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -104,10 +257,26 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActivitiesRoute: ActivitiesRoute,
+  BoutiqueRoute: BoutiqueRoute,
   ConciergeRoute: ConciergeRoute,
+  EntertainmentRoute: EntertainmentRoute,
+  FidelityRoute: FidelityRoute,
+  GamesRoute: GamesRoute,
+  HelpRoute: HelpRoute,
+  RoomRoute: RoomRoute,
   ServicesRoute: ServicesRoute,
   StayRoute: StayRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

@@ -14,14 +14,17 @@ export function useMockSSE(enabled = true) {
 
   useEffect(() => {
     if (!enabled) return;
-    const interval = setInterval(() => {
-      // Find the oldest request that is not completed and advance it.
-      const candidates = requests.filter((r) => r.status !== "completed");
-      if (candidates.length === 0) return;
-      const target = candidates[Math.floor(Math.random() * candidates.length)];
-      const next = target.status === "pending" ? "enroute" : "completed";
-      updateStatus(target.id, next);
-    }, 8000 + Math.random() * 4000);
+    const interval = setInterval(
+      () => {
+        // Find the oldest request that is not completed and advance it.
+        const candidates = requests.filter((r) => r.status !== "completed");
+        if (candidates.length === 0) return;
+        const target = candidates[Math.floor(Math.random() * candidates.length)];
+        const next = target.status === "pending" ? "enroute" : "completed";
+        updateStatus(target.id, next);
+      },
+      8000 + Math.random() * 4000,
+    );
     return () => clearInterval(interval);
   }, [requests, updateStatus, enabled]);
 }

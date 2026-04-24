@@ -3,6 +3,7 @@ import { askLumina } from "@/lib/mockAI";
 import type { BackendAction, ChatMessage, SuggestedReply } from "@/lib/types";
 import { useServices } from "./ServiceContext";
 import { useNavigate } from "@tanstack/react-router";
+import { useGuest } from "./GuestContext";
 
 interface AISessionContextValue {
   messages: ChatMessage[];
@@ -32,6 +33,7 @@ const AISessionContext = createContext<AISessionContextValue | null>(null);
 export function AISessionProvider({ children }: { children: ReactNode }) {
   const { createRequest } = useServices();
   const navigate = useNavigate();
+  const { setRoomTemperature, setLightMode, setCurtainsOpen } = useGuest();
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME]);
   const [isThinking, setIsThinking] = useState(false);
 
@@ -45,12 +47,22 @@ export function AISessionProvider({ children }: { children: ReactNode }) {
           navigate({ to: action.payload.to });
           break;
         case "book":
+          // Handle booking if needed
+          break;
+        case "room_control":
+          if (action.payload.temp !== undefined) setRoomTemperature(action.payload.temp);
+          if (action.payload.lightMode !== undefined) setLightMode(action.payload.lightMode);
+          if (action.payload.curtains !== undefined) setCurtainsOpen(action.payload.curtains);
+          break;
+        case "excursion-details":
+          // Handled in concierge page directly
+          break;
         case "none":
         default:
           break;
       }
     },
-    [createRequest, navigate],
+    [createRequest, navigate, setRoomTemperature, setLightMode, setCurtainsOpen],
   );
 
   const send = useCallback(

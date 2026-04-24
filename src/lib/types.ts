@@ -26,6 +26,11 @@ export interface Guest {
   salutation: string;
   preferences: string[];
   loyaltyTier: string;
+  points?: number;
+  memberSince?: number;
+  languagePreference?: string;
+  companions?: { name: string; relation: string; preferences?: string[] }[];
+  pastStays?: { property: string; location: string; date: string }[];
 }
 
 export interface Reservation {
@@ -57,6 +62,26 @@ export type UIComponent =
         title: string;
         status: ServiceStatus;
         etaMinutes: number;
+      };
+    }
+  | {
+      type: "WeatherCard";
+      props: {
+        temp: string;
+        condition: string;
+        forecast: Array<{ day: string; temp: string; icon: string }>;
+      };
+    }
+  | {
+      type: "LocalRecs";
+      props: {
+        category: string;
+        locations: Array<{
+          name: string;
+          distance: string;
+          rating: number;
+          image: string;
+        }>;
       };
     }
   | {
@@ -104,7 +129,16 @@ export type BackendAction =
       };
     }
   | { kind: "book"; payload: { item: string } }
-  | { kind: "navigate"; payload: { to: "/services" | "/stay" | "/concierge" | "/" } }
+  | { kind: "navigate"; payload: { to: "/services" | "/stay" | "/concierge" | "/" | "/room" } }
+  | {
+      kind: "room_control";
+      payload: {
+        temp?: number;
+        lightMode?: "bright" | "romantic" | "sleep" | "movie";
+        curtains?: boolean;
+      };
+    }
+  | { kind: "excursion-details"; payload: { title: string; subtitle?: string } }
   | { kind: "none" };
 
 export interface AIResponse {

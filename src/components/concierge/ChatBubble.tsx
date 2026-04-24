@@ -15,10 +15,15 @@ export function ChatBubble({
     <div className={["flex gap-4 w-full", isLumina ? "justify-start" : "justify-end"].join(" ")}>
       {isLumina && (
         <div className="size-12 shrink-0 rounded-2xl bg-ai text-ai-foreground grid place-items-center">
-          <Sparkles className="size-6" />
+          <img src="/images/logo.png" alt="" className="size-6 object-contain" />
         </div>
       )}
-      <div className={["max-w-[720px] flex flex-col gap-3", isLumina ? "items-start" : "items-end"].join(" ")}>
+      <div
+        className={[
+          "max-w-[720px] flex flex-col gap-3",
+          isLumina ? "items-start" : "items-end",
+        ].join(" ")}
+      >
         <div
           className={[
             "px-6 py-4 rounded-3xl text-xl leading-snug tv-shadow",

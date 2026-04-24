@@ -101,9 +101,7 @@ export function useRemoteNav() {
       const target = e.target as HTMLElement | null;
       const isTextInput =
         target &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.isContentEditable);
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
 
       if (e.key === "Escape") {
         e.preventDefault();

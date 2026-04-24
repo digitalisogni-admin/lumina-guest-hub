@@ -4,6 +4,9 @@ import { RoomCard } from "@/components/ui-cards/RoomCard";
 import { StatusTracker } from "@/components/ui-cards/StatusTracker";
 import { Carousel } from "@/components/ui-cards/Carousel";
 
+import { WeatherCard } from "@/components/ui-cards/WeatherCard";
+import { LocalRecs } from "@/components/ui-cards/LocalRecs";
+
 interface Handlers {
   onQuickReply?: (option: string) => void;
   onAction?: (action: BackendAction) => void;
@@ -35,6 +38,16 @@ export function renderUIComponent(ui: UIComponent, handlers?: Handlers) {
           etaMinutes={ui.props.etaMinutes}
         />
       );
+    case "WeatherCard":
+      return (
+        <WeatherCard
+          temp={ui.props.temp}
+          condition={ui.props.condition}
+          forecast={ui.props.forecast}
+        />
+      );
+    case "LocalRecs":
+      return <LocalRecs category={ui.props.category} locations={ui.props.locations} />;
     case "Carousel":
       return (
         <Carousel
@@ -51,13 +64,10 @@ export function renderUIComponent(ui: UIComponent, handlers?: Handlers) {
 }
 
 /** Render a list of cards stacked vertically with consistent spacing. */
-export function renderUIComponents(
-  list: UIComponent[] | undefined,
-  handlers?: Handlers,
-) {
+export function renderUIComponents(list: UIComponent[] | undefined, handlers?: Handlers) {
   if (!list || list.length === 0) return null;
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-8">
       {list.map((ui, i) => (
         <div key={i}>{renderUIComponent(ui, handlers)}</div>
       ))}

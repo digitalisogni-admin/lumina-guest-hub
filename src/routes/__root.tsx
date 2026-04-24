@@ -4,7 +4,10 @@ import appCss from "../styles.css?url";
 import { GuestProvider } from "@/context/GuestContext";
 import { ServiceProvider } from "@/context/ServiceContext";
 import { AISessionProvider } from "@/context/AISessionContext";
+import { ToastProvider } from "@/components/ui/ToastContext";
 import { TVShell } from "@/components/tv/TVShell";
+import { WalkthroughProvider } from "@/context/WalkthroughContext";
+import { WalkthroughEngine } from "@/components/tv/WalkthroughEngine";
 
 function NotFoundComponent() {
   return (
@@ -69,16 +72,33 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { PortfolioDemoProvider } from "@/context/PortfolioDemoContext";
+import { PortfolioSettings } from "@/components/portfolio/PortfolioSettings";
+import { Screensaver } from "@/components/portfolio/Screensaver";
+import { ProactiveToast } from "@/components/portfolio/ProactiveToast";
+import { QRPairingModal } from "@/components/portfolio/QRPairingModal";
+
 function RootComponent() {
   return (
-    <GuestProvider>
-      <ServiceProvider>
-        <AISessionProvider>
-          <TVShell>
-            <Outlet />
-          </TVShell>
-        </AISessionProvider>
-      </ServiceProvider>
-    </GuestProvider>
+    <WalkthroughProvider>
+      <GuestProvider>
+        <ServiceProvider>
+          <AISessionProvider>
+            <PortfolioDemoProvider>
+              <ToastProvider>
+                <TVShell>
+                  <Outlet />
+                </TVShell>
+                <PortfolioSettings />
+                <Screensaver />
+                <ProactiveToast />
+                <QRPairingModal />
+                <WalkthroughEngine />
+              </ToastProvider>
+            </PortfolioDemoProvider>
+          </AISessionProvider>
+        </ServiceProvider>
+      </GuestProvider>
+    </WalkthroughProvider>
   );
 }

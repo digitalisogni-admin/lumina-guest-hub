@@ -26,10 +26,14 @@ export function VoiceButton({ onCapture }: { onCapture?: (text: string) => void 
       aria-label={listening ? "Stop listening" : "Speak to Lumina"}
       className={[
         "relative size-20 rounded-full grid place-items-center transition-colors shrink-0",
-        listening ? "bg-ai text-ai-foreground" : "bg-surface border-2 border-border text-ai hover:bg-ai-soft",
+        listening
+          ? "bg-ai text-ai-foreground"
+          : "bg-surface border-2 border-border text-ai hover:bg-ai-soft",
       ].join(" ")}
     >
-      {listening && <span className="absolute inset-0 rounded-full bg-ai animate-pulse-ring" aria-hidden />}
+      {listening && (
+        <span className="absolute inset-0 rounded-full bg-ai animate-pulse-ring" aria-hidden />
+      )}
       {listening ? (
         <div className="flex items-end gap-1 h-7" aria-hidden>
           {[0, 1, 2, 3, 4].map((i) => (

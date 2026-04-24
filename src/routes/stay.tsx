@@ -1,196 +1,438 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { CalendarDays, CreditCard, ChevronRight, Check } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import useEmblaCarousel from "embla-carousel-react";
+import {
+  CalendarDays,
+  CreditCard,
+  ChevronRight,
+  Check,
+  MapIcon,
+  Moon,
+  MapPin,
+  X,
+  QrCode,
+  Star,
+  Receipt,
+  ArrowRight,
+  ShieldCheck,
+  DoorOpen,
+  Plane,
+  BedDouble,
+  Sparkles,
+  LucideIcon,
+} from "lucide-react";
 import { useGuest } from "@/context/GuestContext";
-import { ADD_ON_SERVICES } from "@/lib/mockData";
+import { SISTER_PROPERTIES } from "@/lib/mockData";
+import { TooltipBubble } from "@/components/ui/TooltipBubble";
+import { BookingCalendarModal } from "@/components/ui/BookingCalendarModal";
+import { CheckoutModal as PortfolioCheckoutModal } from "@/components/portfolio/CheckoutModal";
+import { HotelMapModal } from "@/components/portfolio/HotelMapModal";
+import { PillowMenuModal } from "@/components/portfolio/PillowMenuModal";
+import { useToast } from "@/components/ui/ToastContext";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/stay")({
-  head: () => ({
-    meta: [
-      { title: "Your Stay · Lumina" },
-      {
-        name: "description",
-        content: "View reservation, modify dates, add services, and complete express checkout.",
-      },
-    ],
-  }),
-  component: StayPage,
+  component: StayHub,
 });
 
-function StayPage() {
-  const { guest, reservation } = useGuest();
-  const [selected, setSelected] = useState<Set<string>>(new Set(["breakfast"]));
-  const [extraNights, setExtraNights] = useState(0);
+function StayHub() {
+  const { guest, reservation, stayExtension, setStayExtension, t } = useGuest();
+  const { showToast } = useToast();
+  const navigate = useNavigate();
 
-  const fmtDate = (iso: string) =>
-    new Date(iso).toLocaleDateString(undefined, {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
+  // Modals & Panels
+  const [isFolioOpen, setIsFolioOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const [isPillowOpen, setIsPillowOpen] = useState(false);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+
+  // Embla
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "center", dragFree: true });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    emblaApi.on("select", () => {
+      setSelectedIndex(emblaApi.selectedScrollSnap());
     });
+  }, [emblaApi]);
 
-  const checkOutDate = useMemo(() => {
-    const d = new Date(reservation.checkOut);
-    d.setDate(d.getDate() + extraNights);
-    return d.toISOString();
-  }, [reservation.checkOut, extraNights]);
-
-  const totalNights = reservation.nights + extraNights;
+  // Folio Logic
+  const totalNights = reservation.nights + stayExtension;
   const roomTotal = totalNights * reservation.nightlyRate;
-  const addOnsTotal = ADD_ON_SERVICES.filter((s) => selected.has(s.id)).reduce(
-    (sum, s) => sum + s.price,
-    0,
-  );
-  const taxes = Math.round((roomTotal + addOnsTotal) * 0.12);
-  const grandTotal = roomTotal + addOnsTotal + taxes;
+  const taxes = Math.round(roomTotal * 0.12);
+  const grandTotal = roomTotal + taxes;
+  const [rating, setRating] = useState(0);
 
-  const toggle = (id: string) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const handleCheckout = () => {
+    if (rating === 0) {
+      showToast("Please leave a rating before checking out.", "error");
+      return;
+    }
+    setIsCheckoutLoading(true);
+    setTimeout(() => {
+      setIsCheckoutLoading(false);
+      setIsCheckoutModalOpen(true);
+      setIsFolioOpen(false);
+    }, 1500);
   };
 
+  const handleUpdateStay = (nights: number) => {
+    setStayExtension(nights);
+    showToast(
+      nights > 1
+        ? t("stay_extended_msg", { nights: String(nights) })
+        : t("stay_extended_msg_singular", { nights: String(nights) }),
+      "success",
+    );
+  };
+
+  const checkOutISO = useMemo(() => {
+    const d = new Date(reservation.checkOut);
+    d.setDate(d.getDate() + stayExtension);
+    return d.toISOString().split("T")[0];
+  }, [reservation.checkOut, stayExtension]);
+
   return (
-    <div className="max-w-[1500px] mx-auto">
-      <header className="mb-8">
-        <h1 className="font-display text-5xl text-primary">Your Stay</h1>
-        <p className="text-xl text-muted-foreground mt-2">
-          {guest.salutation} {guest.name} · {guest.loyaltyTier}
-        </p>
+    <div className="relative w-full h-[calc(100vh-140px)] overflow-hidden flex flex-col pt-4">
+      {/* ━━━ TOP BAR: Header & Stats ━━━ */}
+      <header className="px-12 flex justify-between items-end shrink-0 mb-8">
+        <div className="flex items-end gap-6">
+          <img src="/images/logo.png" alt="Lumina" className="h-14 mb-1 opacity-90" />
+          <div className="w-px h-16 bg-white/10 mb-1" />
+          <div>
+            <h1 className="text-6xl font-display text-white mb-2">Your Stay</h1>
+            <p className="text-2xl text-white/60">
+              {guest.salutation} {guest.name} <span className="mx-2 text-white/20">|</span> Room{" "}
+              {reservation.room}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-6 bg-surface/50 backdrop-blur-md p-4 rounded-3xl border border-white/5">
+          <div className="flex flex-col items-center px-4">
+            <span className="text-xs text-white/50 uppercase tracking-widest font-bold mb-1">
+              Check-in
+            </span>
+            <span className="text-lg text-white">{reservation.checkIn}</span>
+          </div>
+          <ArrowRight className="size-5 text-white/20" />
+          <div className="flex flex-col items-center px-4">
+            <span className="text-xs text-white/50 uppercase tracking-widest font-bold mb-1">
+              Check-out
+            </span>
+            <span className="text-lg text-ai font-semibold">{checkOutISO}</span>
+          </div>
+          <div className="bg-ai/10 border border-ai/20 px-6 py-3 rounded-xl flex flex-col items-center">
+            <span className="text-2xl font-display text-ai">{totalNights}</span>
+            <span className="text-xs text-ai font-bold uppercase tracking-wider">Nights</span>
+          </div>
+        </div>
       </header>
 
-      <div className="grid grid-cols-12 gap-8">
-        {/* Reservation summary */}
-        <section className="col-span-7 rounded-3xl bg-surface border border-border tv-shadow p-8">
-          <h2 className="font-display text-3xl text-primary">Reservation</h2>
-          <div className="mt-6 grid grid-cols-3 gap-5">
-            <Stat label="Room" value={reservation.room} />
-            <Stat label="Guests" value={String(reservation.guests)} />
-            <Stat label="Nights" value={String(totalNights)} />
-            <Stat label="Check-in" value={fmtDate(reservation.checkIn)} />
-            <Stat label="Check-out" value={fmtDate(checkOutDate)} />
-            <Stat label="Nightly rate" value={`$${reservation.nightlyRate}`} />
+      {/* ━━━ CENTER: Horizontal Carousel ━━━ */}
+      <div className="flex-1 flex flex-col justify-center min-h-0 relative">
+        <div className="px-12 mb-4 flex items-center justify-between">
+          <h2 className="text-xl text-white/70 font-semibold tracking-wide uppercase">
+            Explore the Collection
+          </h2>
+          <div className="flex gap-2">
+            {SISTER_PROPERTIES.map((_, i) => (
+              <div
+                key={i}
+                className={`h-1.5 rounded-full transition-all duration-300 ${i === selectedIndex ? "w-8 bg-ai" : "w-3 bg-white/20"}`}
+              />
+            ))}
           </div>
+        </div>
 
-          {/* Modify dates */}
-          <div className="mt-8 p-6 rounded-2xl bg-surface-2">
-            <div className="flex items-center gap-3 text-ai">
-              <CalendarDays className="size-6" />
-              <div className="text-xl font-semibold text-foreground">Extend your stay</div>
-            </div>
-            <p className="text-base text-muted-foreground mt-1">
-              Add nights — your suite is available through April 30.
-            </p>
-            <div className="mt-5 flex items-center gap-3">
-              {[0, 1, 2, 3].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setExtraNights(n)}
-                  className={[
-                    "min-h-[64px] px-6 rounded-2xl text-lg font-semibold border-2",
-                    extraNights === n
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-surface text-foreground border-border hover:border-ai/40",
-                  ].join(" ")}
+        <div className="overflow-hidden w-full" ref={emblaRef}>
+          <div className="flex gap-6 px-12">
+            {SISTER_PROPERTIES.map((prop, idx) => {
+              const isActive = idx === selectedIndex;
+              return (
+                <div
+                  key={prop.id}
+                  className={`relative shrink-0 transition-all duration-700 ease-out flex group focus-tv rounded-[40px] border border-white/10 overflow-hidden tv-shadow-2xl bg-surface`}
+                  style={{
+                    flexBasis: isActive ? "75%" : "20%",
+                    height: "400px",
+                  }}
+                  data-focusable
+                  onFocus={() => emblaApi?.scrollTo(idx)}
                 >
-                  {n === 0 ? "No change" : `+${n} night${n > 1 ? "s" : ""}`}
-                </button>
-              ))}
-            </div>
-          </div>
+                  {/* Background Image */}
+                  <div className="absolute inset-0">
+                    <img
+                      src={prop.image}
+                      alt={prop.name}
+                      className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-1000"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                    <div
+                      className={`absolute inset-0 bg-black transition-opacity duration-700 ${isActive ? "opacity-0" : "opacity-60"}`}
+                    />
+                  </div>
 
-          {/* Add services */}
-          <div className="mt-8">
-            <h3 className="text-xl font-semibold text-foreground mb-4">Add services</h3>
-            <div className="space-y-3">
-              {ADD_ON_SERVICES.map((s) => {
-                const isOn = selected.has(s.id);
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => toggle(s.id)}
-                    className={[
-                      "w-full min-h-[80px] px-6 rounded-2xl flex items-center justify-between gap-4 border-2 transition-colors text-left",
-                      isOn
-                        ? "bg-ai-soft border-ai/50"
-                        : "bg-surface border-border hover:border-ai/30",
-                    ].join(" ")}
+                  {/* Content (Only fully visible if active) */}
+                  <div
+                    className={`absolute inset-0 p-10 flex flex-col justify-end transition-opacity duration-500 delay-100 ${isActive ? "opacity-100" : "opacity-0"}`}
                   >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={[
-                          "size-10 rounded-xl grid place-items-center",
-                          isOn ? "bg-ai text-ai-foreground" : "bg-surface-2 text-muted-foreground",
-                        ].join(" ")}
-                      >
-                        {isOn ? <Check className="size-6" /> : <span className="size-3 rounded-full bg-current opacity-40" />}
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 text-ai text-sm font-bold tracking-widest uppercase mb-2">
+                          <MapPin className="size-4" /> {prop.location}
+                        </div>
+                        <h3 className="text-5xl font-display text-white mb-4">{prop.name}</h3>
+                        <p className="text-white/80 text-xl max-w-lg">{prop.description}</p>
                       </div>
-                      <div className="text-lg font-semibold text-foreground">{s.label}</div>
+
+                      {/* QR Code Block */}
+                      <div className="bg-black/60 backdrop-blur-xl p-6 rounded-3xl border border-white/10 flex items-center gap-6 animate-in slide-in-from-bottom-10 fade-in duration-700">
+                        <div className="text-right">
+                          <div className="text-2xl font-display text-white mb-1">
+                            Book Future Stay
+                          </div>
+                          <div className="text-white/50 text-sm">Scan to send link to phone</div>
+                        </div>
+                        <div className="bg-white p-3 rounded-2xl">
+                          <QrCode className="size-16 text-black" />
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-lg font-semibold text-foreground">+${s.price}</div>
-                  </button>
-                );
-              })}
-            </div>
+                  </div>
+
+                  {/* Vertical title for inactive cards */}
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center transition-opacity duration-500 ${isActive ? "opacity-0" : "opacity-100"}`}
+                  >
+                    <h3 className="text-3xl font-display text-white -rotate-90 whitespace-nowrap tracking-wider">
+                      {prop.name}
+                    </h3>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </section>
-
-        {/* Folio / checkout */}
-        <aside className="col-span-5 rounded-3xl bg-surface border border-border tv-shadow p-8 h-fit sticky top-8">
-          <h2 className="font-display text-3xl text-primary">Folio</h2>
-
-          <dl className="mt-6 space-y-4">
-            <Row label={`Room · ${totalNights} night${totalNights > 1 ? "s" : ""}`} value={`$${roomTotal}`} />
-            <Row label="Add-on services" value={`$${addOnsTotal}`} />
-            <Row label="Taxes & fees (12%)" value={`$${taxes}`} />
-            <div className="border-t border-border pt-4 mt-4 flex items-center justify-between">
-              <dt className="text-xl font-semibold text-foreground">Total</dt>
-              <dd className="text-3xl font-semibold text-primary">${grandTotal}</dd>
-            </div>
-          </dl>
-
-          <div className="mt-6 p-5 rounded-2xl bg-surface-2 flex items-center gap-3">
-            <CreditCard className="size-6 text-ai" />
-            <div>
-              <div className="text-base font-semibold text-foreground">Visa ending 4421</div>
-              <div className="text-sm text-muted-foreground">Charged on checkout</div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            className="mt-6 w-full min-h-[72px] rounded-2xl bg-primary text-primary-foreground font-semibold text-xl flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors"
-          >
-            Express checkout <ChevronRight className="size-6" />
-          </button>
-          <p className="text-sm text-muted-foreground text-center mt-3">
-            Folio will be emailed instantly. No need to visit the front desk.
-          </p>
-        </aside>
+        </div>
       </div>
+
+      {/* ━━━ BOTTOM: Action Tiles ━━━ */}
+      <footer className="px-12 py-8 shrink-0 overflow-x-auto no-scrollbar">
+        <div className="flex gap-6 min-w-max pb-4">
+          <ActionTile
+            icon={Receipt}
+            title="View Folio"
+            sub="Review bill & Checkout"
+            onClick={() => setIsFolioOpen(true)}
+            highlight
+          />
+          <ActionTile
+            icon={CalendarDays}
+            title="Modify Stay"
+            sub="Extend dates"
+            onClick={() => setIsCalendarOpen(true)}
+          />
+          <ActionTile
+            icon={MapIcon}
+            title="Resort Map"
+            sub="Interactive directory"
+            onClick={() => setIsMapOpen(true)}
+          />
+          <ActionTile
+            icon={Star}
+            title="Activities"
+            sub="Daily experience board"
+            onClick={() => navigate({ to: "/activities" })}
+          />
+          <ActionTile
+            icon={BedDouble}
+            title="Pillow Menu"
+            sub="Premium sleep selection"
+            onClick={() => setIsPillowOpen(true)}
+          />
+          <ActionTile
+            icon={Sparkles}
+            title="Digital Boutique"
+            sub="Room delivery items"
+            onClick={() => navigate({ to: "/boutique" })}
+          />
+        </div>
+      </footer>
+
+      {/* ━━━ SLIDE-OUT FOLIO PANEL ━━━ */}
+      {isFolioOpen && (
+        <div className="absolute inset-0 z-50 flex justify-end">
+          {/* Backdrop */}
+          <button
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm outline-none cursor-default"
+            onClick={() => setIsFolioOpen(false)}
+            data-focusable
+          />
+
+          {/* Panel */}
+          <div className="w-[550px] h-full bg-surface/90 backdrop-blur-3xl border-l border-white/10 tv-shadow-2xl flex flex-col animate-in slide-in-from-right duration-500 relative z-10">
+            <div className="p-10 border-b border-white/10 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-4">
+                <div className="size-12 rounded-2xl bg-ai/20 text-ai grid place-items-center">
+                  <ShieldCheck className="size-6" />
+                </div>
+                <div>
+                  <h2 className="font-display text-3xl text-white">Your Folio</h2>
+                  <p className="text-white/50 text-sm">Invoice #INV-2401</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsFolioOpen(false)}
+                className="size-12 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white focus-tv"
+                data-focusable
+              >
+                <X className="size-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-10 space-y-8 no-scrollbar">
+              <dl className="space-y-6">
+                <FolioRow
+                  label={t("room_nights", {
+                    count: totalNights,
+                    unit: totalNights > 1 ? t("nights_plural") : t("night"),
+                  })}
+                  value={`$${roomTotal.toLocaleString()}`}
+                />
+                <FolioRow label={t("taxes_fees")} value={`$${taxes}`} />
+                <div className="border-t border-dashed border-white/20 pt-6 mt-6">
+                  <div className="flex items-end justify-between">
+                    <dt className="text-lg font-semibold text-white/70 uppercase tracking-wider">
+                      {t("total")}
+                    </dt>
+                    <dd className="text-5xl font-display text-white">
+                      ${grandTotal.toLocaleString()}
+                    </dd>
+                  </div>
+                </div>
+              </dl>
+
+              <div className="p-5 rounded-2xl bg-black/40 border border-white/5 flex items-center gap-5">
+                <div className="size-12 rounded-xl bg-white/10 text-white grid place-items-center">
+                  <CreditCard className="size-6" />
+                </div>
+                <div>
+                  <div className="text-base font-semibold text-white">
+                    {t("credit_card_ending", { number: "4421" })}
+                  </div>
+                  <div className="text-sm text-white/50">{t("charged_on_checkout")}</div>
+                </div>
+              </div>
+
+              {/* Review Block */}
+              <div className="rounded-[24px] bg-white/5 border border-white/10 p-6 text-center">
+                <h3 className="text-white font-semibold mb-2">How was your stay?</h3>
+                <div className="flex justify-center gap-1 mb-6">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => setRating(star)}
+                      className="p-2 focus-tv outline-none rounded-full transition-transform hover:scale-110"
+                      data-focusable
+                    >
+                      <Star
+                        className={`size-8 transition-colors ${rating >= star ? "fill-ai text-ai drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" : "fill-transparent text-white/20"}`}
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                <TooltipBubble
+                  content={rating === 0 ? "Please rate to checkout" : "Complete Express Checkout"}
+                >
+                  <button
+                    onClick={handleCheckout}
+                    disabled={isCheckoutLoading || rating === 0}
+                    className={`w-full h-16 rounded-2xl font-semibold text-xl flex items-center justify-center gap-2 transition-all focus-tv ${
+                      rating === 0
+                        ? "bg-surface-2 text-white/30 cursor-not-allowed"
+                        : "bg-ai text-white hover:bg-ai/90"
+                    }`}
+                    data-focusable
+                  >
+                    {isCheckoutLoading ? (
+                      <span className="animate-pulse">Processing...</span>
+                    ) : (
+                      <>
+                        Express Checkout <ChevronRight className="size-5" />
+                      </>
+                    )}
+                  </button>
+                </TooltipBubble>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modals */}
+      <BookingCalendarModal
+        isOpen={isCalendarOpen}
+        onClose={() => setIsCalendarOpen(false)}
+        onConfirm={handleUpdateStay}
+        currentNights={reservation.nights}
+      />
+      <HotelMapModal isOpen={isMapOpen} onClose={() => setIsMapOpen(false)} />
+      <PillowMenuModal isOpen={isPillowOpen} onClose={() => setIsPillowOpen(false)} />
+      <PortfolioCheckoutModal
+        isOpen={isCheckoutModalOpen}
+        onClose={() => setIsCheckoutModalOpen(false)}
+      />
     </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function ActionTile({
+  icon: Icon,
+  title,
+  sub,
+  onClick,
+  highlight,
+}: {
+  icon: LucideIcon;
+  title: string;
+  sub: string;
+  onClick: () => void;
+  highlight?: boolean;
+}) {
   return (
-    <div className="rounded-2xl bg-surface-2 p-5">
-      <div className="text-sm uppercase tracking-wide text-muted-foreground font-semibold">{label}</div>
-      <div className="text-2xl font-semibold text-foreground mt-1 font-display">{value}</div>
-    </div>
+    <button
+      onClick={onClick}
+      className={`group w-full text-left p-6 rounded-[32px] border transition-all focus-tv flex items-center gap-5 tv-shadow ${
+        highlight
+          ? "bg-ai/10 border-ai/30 hover:bg-ai/20"
+          : "bg-surface/50 border-white/5 hover:bg-surface"
+      }`}
+      data-focusable
+    >
+      <div
+        className={`size-16 rounded-2xl grid place-items-center transition-colors ${highlight ? "bg-ai text-white" : "bg-white/5 text-white/60 group-hover:bg-white/10 group-hover:text-white"}`}
+      >
+        <Icon className="size-8" />
+      </div>
+      <div>
+        <div className={`text-2xl font-display mb-1 ${highlight ? "text-ai" : "text-white"}`}>
+          {title}
+        </div>
+        <div className="text-sm text-white/50">{sub}</div>
+      </div>
+    </button>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function FolioRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between">
-      <dt className="text-lg text-muted-foreground">{label}</dt>
-      <dd className="text-lg font-semibold text-foreground">{value}</dd>
+      <dt className="text-lg text-white/60">{label}</dt>
+      <dd className="text-xl font-medium text-white">{value}</dd>
     </div>
   );
 }
